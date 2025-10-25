@@ -126,3 +126,9 @@ coverage/
 # Environment specific
 .env.production
 .env.staging
+
+# Large files / Archives
+*.zip
+*.rar
+*.tar.gz
+*.7z
