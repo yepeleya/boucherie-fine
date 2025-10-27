@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles personnalisés pour La Boucherie Fine */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #F5F5F5;
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar personnalisée */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #E50914 #F5F5F5;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #F5F5F5;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #E50914;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #CC0812;
+}
+
+/* Classes utilitaires personnalisées */
+.btn-primary {
+  background-color: #E50914;
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary:hover {
+  background-color: #CC0812;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #E5E7EB;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #E50914;
+  border-color: #E50914;
+}
+
+/* Container responsive */
+.container-dashboard {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-dashboard {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-dashboard {
+    padding: 0 2rem;
+  }
+}
+
+/* Mode sombre */
+.dark body {
+  background-color: #1F1F1F;
+  color: #FFFFFF;
+}
+
+.dark .card {
+  background-color: #1F2937;
+  border-color: #374151;
+}
+
+.dark .card-header {
+  border-color: #374151;
+}
+
+.dark .input-field {
+  background-color: #374151;
+  border-color: #4B5563;
+  color: white;
+}

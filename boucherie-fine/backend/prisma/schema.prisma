@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// TABLE UTILISATEURS
+model Utilisateur {
+  id               Int      @id @default(autoincrement())
+  nom              String
+  prenom           String?
+  email            String   @unique
+  telephone        String?
+  adresse          String?
+  motDePasse       String
+  role             Role     @default(CLIENT)
+  dateCreation     DateTime @default(now())
+  dateModification DateTime @updatedAt
+
+  reservations Reservation[]
+  commandes    Commande[]
+
+  @@map("utilisateurs")
+}
+
+/// TABLE CATÉGORIES
+model Categorie {
+  id          Int     @id @default(autoincrement())
+  nom         String
+  description String?
+  imageUrl    String?
+  actif       Boolean @default(true)
+  ordre       Int     @default(0)
+
+  @@map("categories")
+}
+
+/// TABLE PRODUITS
+model Produit {
+  id               Int      @id @default(autoincrement())
+  nom              String
+  description      String?
+  prix             Float
+  imageUrl         String?
+  disponible       Boolean  @default(true)
+  stock            Int?
+  poids            Float?
+  unite            String?  @default("kg")
+  categorieId      Int
+  dateCreation     DateTime @default(now())
+  dateModification DateTime @updatedAt
+
+  @@index([categorieId], map: "produits_categorieId_fkey")
+  @@map("produits")
+}
+
+/// TABLE COMMANDES
+model Commande {
+  id            Int            @id @default(autoincrement())
+  numero        String         @unique @default(uuid())
+  utilisateurId Int
+  utilisateur   Utilisateur    @relation(fields: [utilisateurId], references: [id])
+  dateCommande  DateTime       @default(now())
+  statut        StatutCommande @default(EN_COURS)
+  total         Float          @default(0)
+  notes         String?
+
+  produits  CommandeProduit[]
+  paiements Paiement[]
+
+  @@index([utilisateurId], map: "commandes_utilisateurId_fkey")
+  @@map("commandes")
+}
+
+/// TABLE LIAISON COMMANDE <-> PRODUIT
+model CommandeProduit {
+  id           Int      @id @default(autoincrement())
+  commandeId   Int
+  produitId    Int
+  quantite     Int      @default(1)
+  prixUnitaire Float
+  Commande     Commande @relation(fields: [commandeId], references: [id])
+
+  @@index([commandeId], map: "commande_produits_commandeId_fkey")
+  @@index([produitId], map: "commande_produits_produitId_fkey")
+  @@map("commande_produits")
+}
+
+/// TABLE RÉSERVATIONS
+model Reservation {
+  id               Int               @id @default(autoincrement())
+  numero           String            @unique @default(uuid())
+  utilisateurId    Int
+  utilisateur      Utilisateur       @relation(fields: [utilisateurId], references: [id])
+  date             DateTime
+  heure            String
+  nbPersonnes      Int
+  salle            String?
+  telephone        String?
+  commentaires     String?
+  statut           StatutReservation @default(EN_ATTENTE)
+  dateCreation     DateTime          @default(now())
+  dateModification DateTime          @updatedAt
+
+  @@index([utilisateurId], map: "reservations_utilisateurId_fkey")
+  @@map("reservations")
+}
+
+/// TABLE PAIEMENTS
+model Paiement {
+  id               Int            @id @default(autoincrement())
+  numero           String         @unique @default(uuid())
+  commandeId       Int?
+  montant          Float
+  modePaiement     ModePaiement
+  statut           StatutPaiement @default(EN_ATTENTE)
+  referenceExterne String?
+  donneesCallback  String?        @db.Text
+  date             DateTime       @default(now())
+  datePaiement     DateTime?
+  Commande         Commande?      @relation(fields: [commandeId], references: [id])
+
+  @@index([commandeId], map: "paiements_commandeId_fkey")
+  @@map("paiements")
+}
+
+/// TABLE ACTUALITÉS (BLOG)
+model Actualite {
+  id               Int       @id @default(autoincrement())
+  titre            String
+  contenu          String    @db.Text
+  resume           String?
+  imageUrl         String?
+  auteur           String?   @default("La Boucherie Fine")
+  actif            Boolean   @default(true)
+  dateDebut        DateTime  @default(now())
+  dateFin          DateTime?
+  dateCreation     DateTime  @default(now())
+  dateModification DateTime  @updatedAt
+
+  @@map("actualites")
+}
+
+/// TABLE NOTIFICATIONS
+model Notification {
+  id           Int      @id @default(autoincrement())
+  type         String
+  titre        String
+  message      String
+  lu           Boolean  @default(false)
+  donnees      String?  @db.Text
+  dateCreation DateTime @default(now())
+
+  @@map("notifications")
+}
+
+/// ENUM RÔLE UTILISATEUR
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+/// ENUM STATUT COMMANDE
+enum StatutCommande {
+  EN_COURS
+  CONFIRMEE
+  PREPAREE
+  LIVREE
+  ANNULEE
+}
+
+/// ENUM STATUT RÉSERVATION
+enum StatutReservation {
+  EN_ATTENTE
+  CONFIRMEE
+  ANNULEE
+}
+
+/// ENUM MODE PAIEMENT
+enum ModePaiement {
+  CARTE
+  MOBILE_MONEY
+  PAYDUNYA
+  FUSION_MONEY
+  ESPECES
+}
+
+/// ENUM STATUT PAIEMENT
+enum StatutPaiement {
+  EN_ATTENTE
+  REUSSI
+  ECHEC
+  REMBOURSE
+}
