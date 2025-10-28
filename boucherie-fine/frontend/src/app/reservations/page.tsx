@@ -323,7 +323,7 @@ export default function ReservationsPage() {
               {/* Formulaire de réservation */}
               <motion.form
                 onSubmit={handleSubmit}
-                className="max-w-2xl mx-auto space-y-8"
+                className="max-w-2xl mx-auto space-y-8 dark-form"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
@@ -340,13 +340,11 @@ export default function ReservationsPage() {
                       name="nom"
                       value={formData.nom}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-800 border-2 text-restaurant-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-restaurant-primary transition-all duration-300 ${
-                        errors.nom ? 'border-red-500' : 'border-gray-600 hover:border-gray-500'
-                      }`}
+                      className={`form-input-dark ${errors.nom ? 'form-input-error' : ''}`}
                       placeholder="Votre nom complet"
                     />
                     {errors.nom && (
-                      <p className="text-red-400 text-xs mt-1">{errors.nom}</p>
+                      <p className="form-error-message">{errors.nom}</p>
                     )}
                   </div>
 
@@ -360,13 +358,11 @@ export default function ReservationsPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-800 border-2 text-restaurant-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-restaurant-primary transition-all duration-300 ${
-                        errors.email ? 'border-red-500' : 'border-gray-600 hover:border-gray-500'
-                      }`}
+                      className={`form-input-dark ${errors.email ? 'form-input-error' : ''}`}
                       placeholder="votre@email.com"
                     />
                     {errors.email && (
-                      <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+                      <p className="form-error-message">{errors.email}</p>
                     )}
                   </div>
                 </div>
@@ -383,13 +379,11 @@ export default function ReservationsPage() {
                       name="telephone"
                       value={formData.telephone}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-800 border-2 text-restaurant-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-restaurant-primary transition-all duration-300 ${
-                        errors.telephone ? 'border-red-500' : 'border-gray-600 hover:border-gray-500'
-                      }`}
+                      className={`form-input-dark ${errors.telephone ? 'form-input-error' : ''}`}
                       placeholder="06 12 34 56 78"
                     />
                     {errors.telephone && (
-                      <p className="text-red-400 text-xs mt-1">{errors.telephone}</p>
+                      <p className="form-error-message">{errors.telephone}</p>
                     )}
                   </div>
 
@@ -402,7 +396,7 @@ export default function ReservationsPage() {
                       name="nbPersonnes"
                       value={formData.nbPersonnes}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-800 border-2 border-gray-600 text-restaurant-white focus:outline-none focus:ring-2 focus:ring-restaurant-primary hover:border-gray-500 transition-all duration-300"
+                      className="form-select-dark"
                     >
                       {[...Array(12)].map((_, i) => (
                         <option key={i + 1} value={i + 1}>
@@ -426,12 +420,10 @@ export default function ReservationsPage() {
                       value={formData.date}
                       onChange={handleInputChange}
                       min={today}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-800 border-2 text-restaurant-white focus:outline-none focus:ring-2 focus:ring-restaurant-primary transition-all duration-300 ${
-                        errors.date ? 'border-red-500' : 'border-gray-600 hover:border-gray-500'
-                      }`}
+                      className={`form-input-dark ${errors.date ? 'form-input-error' : ''}`}
                     />
                     {errors.date && (
-                      <p className="text-red-400 text-xs mt-1">{errors.date}</p>
+                      <p className="form-error-message">{errors.date}</p>
                     )}
                   </div>
 
@@ -444,9 +436,7 @@ export default function ReservationsPage() {
                       name="heure"
                       value={formData.heure}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-800 border-2 text-restaurant-white focus:outline-none focus:ring-2 focus:ring-restaurant-primary transition-all duration-300 ${
-                        errors.heure ? 'border-red-500' : 'border-gray-600 hover:border-gray-500'
-                      }`}
+                      className={`form-select-dark ${errors.heure ? 'form-input-error' : ''}`}
                     >
                       <option value="">Sélectionnez une heure</option>
                       <optgroup label="Déjeuner">
@@ -461,7 +451,7 @@ export default function ReservationsPage() {
                       </optgroup>
                     </select>
                     {errors.heure && (
-                      <p className="text-red-400 text-xs mt-1">{errors.heure}</p>
+                      <p className="form-error-message">{errors.heure}</p>
                     )}
                   </div>
                 </div>
@@ -477,7 +467,7 @@ export default function ReservationsPage() {
                     value={formData.commentaires}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800 border-2 border-gray-600 text-restaurant-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-restaurant-primary hover:border-gray-500 transition-all duration-300 resize-none"
+                    className="form-textarea-dark"
                     placeholder="Allergies, anniversaire, demandes particulières..."
                   />
                 </div>

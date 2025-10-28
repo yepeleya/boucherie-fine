@@ -150,16 +150,14 @@ export default function LoginPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                    errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-restaurant-primary'
-                  }`}
+                  className={`form-input-light ${errors.email ? 'form-input-error' : ''}`}
                   placeholder="votre@email.com"
                 />
                 {errors.email && (
                   <motion.p 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600"
+                    className="form-error-message"
                   >
                     {errors.email}
                   </motion.p>
@@ -177,9 +175,7 @@ export default function LoginPage() {
                     name="motDePasse"
                     value={formData.motDePasse}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 pr-12 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                      errors.motDePasse ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-restaurant-primary'
-                    }`}
+                    className={`form-input-light pr-12 ${errors.motDePasse ? 'form-input-error' : ''}`}
                     placeholder="••••••••"
                   />
                   <button
@@ -198,7 +194,7 @@ export default function LoginPage() {
                   <motion.p 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600"
+                    className="form-error-message"
                   >
                     {errors.motDePasse}
                   </motion.p>

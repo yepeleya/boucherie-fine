@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/forms.css";
 
 :root {
   --restaurant-black: #000000;
@@ -19,11 +20,60 @@ body {
   line-height: 1.6;
 }
 
-/* Headings use Playfair Display for a gastronomic look */
+/* Amélioration de la visibilité du texte */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-playfair), serif;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: inherit !important; /* Hérite de la couleur du parent */
+}
+
+/* Labels de formulaires - visibilité garantie */
+label {
+  color: inherit !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+  display: block !important;
+}
+
+/* Textes sur fond sombre */
+.text-on-dark {
+  color: var(--restaurant-white) !important;
+}
+
+.text-on-dark label {
+  color: var(--restaurant-white) !important;
+}
+
+/* Textes sur fond clair */
+.text-on-light {
+  color: var(--restaurant-black) !important;
+}
+
+.text-on-light label {
+  color: var(--restaurant-black) !important;
+}
+
+/* Messages d'erreur - toujours visibles */
+.error-message {
+  color: #EF4444 !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Messages de succès - toujours visibles */
+.success-message {
+  color: #10B981 !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Placeholders - meilleure lisibilité */
+::placeholder {
+  opacity: 0.7 !important;
+  font-style: italic;
 }
 
 /* Utility palette - Enhanced */
@@ -77,10 +127,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-/* Enhanced Buttons */
+/* Enhanced Buttons - Visibilité améliorée */
 .btn-primary {
   background: linear-gradient(135deg, var(--restaurant-red), var(--restaurant-red-hover));
-  color: var(--restaurant-white);
+  color: var(--restaurant-white) !important;
   border: none;
   padding: 12px 24px;
   border-radius: 50px;
@@ -96,11 +146,12 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(200,16,46,0.4);
   background: linear-gradient(135deg, var(--restaurant-red-light), var(--restaurant-red));
+  color: var(--restaurant-white) !important;
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--restaurant-white);
+  color: var(--restaurant-white) !important;
   border: 2px solid var(--restaurant-red);
   padding: 12px 24px;
   border-radius: 50px;
@@ -113,9 +164,59 @@ h1, h2, h3, h4, h5, h6 {
 }
 .btn-outline:hover {
   background: var(--restaurant-red);
-  color: var(--restaurant-white);
+  color: var(--restaurant-white) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(200,16,46,0.3);
+}
+
+/* Boutons sur fond sombre - meilleure visibilité */
+.btn-dark {
+  background: linear-gradient(135deg, var(--restaurant-red), var(--restaurant-red-hover));
+  color: var(--restaurant-white) !important;
+  border: 2px solid var(--restaurant-red);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 300ms ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-dark:hover {
+  background: linear-gradient(135deg, var(--restaurant-red-light), var(--restaurant-red));
+  color: var(--restaurant-white) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(200,16,46,0.4);
+  border-color: var(--restaurant-red-light);
+}
+
+.btn-dark:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Boutons secondaires sur fond sombre */
+.btn-secondary-dark {
+  background: rgba(255,255,255,0.1);
+  color: var(--restaurant-white) !important;
+  border: 2px solid rgba(255,255,255,0.3);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 300ms ease;
+  cursor: pointer;
+}
+
+.btn-secondary-dark:hover {
+  background: rgba(255,255,255,0.2);
+  color: var(--restaurant-white) !important;
+  border-color: rgba(255,255,255,0.5);
+  transform: translateY(-2px);
 }
 
 /* Hero Enhanced */
@@ -256,13 +357,89 @@ h1, h2, h3, h4, h5, h6 {
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="tel"] {
-  color: #1F2937 !important; /* Gris foncé pour une bonne lisibilité */
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  color: #111827 !important; /* Noir pour une excellente lisibilité */
+  background-color: #F9FAFB !important; /* Fond blanc cassé */
+  border: 2px solid #D1D5DB !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+select:focus,
+textarea:focus {
+  color: #111827 !important;
+  background-color: #FFFFFF !important;
+  border-color: var(--restaurant-red) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1) !important;
 }
 
 input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="password"]::placeholder,
-input[type="tel"]::placeholder {
+input[type="tel"]::placeholder,
+textarea::placeholder {
   color: #6B7280 !important; /* Gris moyen pour les placeholders */
+  opacity: 1 !important;
+}
+
+/* Styles spéciaux pour les formulaires sur fond sombre */
+.dark-form input[type="text"],
+.dark-form input[type="email"],
+.dark-form input[type="password"],
+.dark-form input[type="tel"],
+.dark-form input[type="date"],
+.dark-form input[type="time"],
+.dark-form select,
+.dark-form textarea {
+  background-color: #374151 !important; /* Fond gris sombre */
+  color: #F9FAFB !important; /* Texte blanc */
+  border-color: #4B5563 !important;
+}
+
+.dark-form input[type="text"]:focus,
+.dark-form input[type="email"]:focus,
+.dark-form input[type="password"]:focus,
+.dark-form input[type="tel"]:focus,
+.dark-form input[type="date"]:focus,
+.dark-form input[type="time"]:focus,
+.dark-form select:focus,
+.dark-form textarea:focus {
+  background-color: #4B5563 !important;
+  color: #FFFFFF !important;
+  border-color: var(--restaurant-red) !important;
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.2) !important;
+}
+
+.dark-form input[type="text"]::placeholder,
+.dark-form input[type="email"]::placeholder,
+.dark-form input[type="password"]::placeholder,
+.dark-form input[type="tel"]::placeholder,
+.dark-form textarea::placeholder {
+  color: #9CA3AF !important;
+}
+
+/* Pour les labels sur fond sombre */
+.dark-form label {
+  color: #F9FAFB !important;
+  font-weight: 600 !important;
+}
+
+/* Correction pour les options des select */
+select option {
+  color: #111827 !important;
+  background-color: #FFFFFF !important;
+}
+
+.dark-form select option {
+  color: #111827 !important;
+  background-color: #FFFFFF !important;
 }

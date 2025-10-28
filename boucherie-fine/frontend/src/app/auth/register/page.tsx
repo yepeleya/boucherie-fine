@@ -250,16 +250,14 @@ export default function RegisterPage() {
                   name="nom"
                   value={formData.nom}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                    errors.nom ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`form-input-light ${errors.nom ? 'form-input-error' : ''}`}
                   placeholder="Nom"
                 />
                 {errors.nom && (
                   <motion.p 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-1 text-xs text-red-600"
+                    className="form-error-message"
                   >
                     {errors.nom}
                   </motion.p>
@@ -275,9 +273,7 @@ export default function RegisterPage() {
                   name="prenom"
                   value={formData.prenom}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                    errors.prenom ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                  }`}
+                  className={`form-input-light ${errors.prenom ? 'form-input-error' : ''}`}
                   placeholder="Prénom"
                 />
                 {errors.prenom && (
@@ -296,16 +292,14 @@ export default function RegisterPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                  errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`form-input-light ${errors.email ? 'form-input-error' : ''}`}
                 placeholder="votre@email.com"
               />
               {errors.email && (
                 <motion.p 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-1 text-xs text-red-600"
+                  className="form-error-message"
                 >
                   {errors.email}
                 </motion.p>
@@ -322,16 +316,14 @@ export default function RegisterPage() {
                 name="telephone"
                 value={formData.telephone}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                  errors.telephone ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`form-input-light ${errors.telephone ? 'form-input-error' : ''}`}
                 placeholder="0544 54 47 35"
               />
               {errors.telephone && (
                 <motion.p 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-1 text-xs text-red-600"
+                  className="form-error-message"
                 >
                   {errors.telephone}
                 </motion.p>
@@ -350,9 +342,7 @@ export default function RegisterPage() {
                     name="motDePasse"
                     value={formData.motDePasse}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 pr-12 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                      errors.motDePasse ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`form-input-light pr-12 ${errors.motDePasse ? 'form-input-error' : ''}`}
                     placeholder="••••••••"
                   />
                   <button
@@ -371,7 +361,7 @@ export default function RegisterPage() {
                   <motion.p 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-1 text-xs text-red-600"
+                    className="form-error-message"
                   >
                     {errors.motDePasse}
                   </motion.p>
@@ -379,7 +369,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-restaurant-black mb-2">
                   Confirmer *
                 </label>
                 <div className="relative">
@@ -388,9 +378,7 @@ export default function RegisterPage() {
                     name="confirmMotDePasse"
                     value={formData.confirmMotDePasse}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 pr-12 border-2 rounded-xl text-restaurant-black focus:ring-2 focus:ring-restaurant-primary focus:border-restaurant-primary transition-all duration-300 ${
-                      errors.confirmMotDePasse ? 'border-red-400 bg-red-50' : 'border-gray-200'
-                    }`}
+                    className={`form-input-light pr-12 ${errors.confirmMotDePasse ? 'form-input-error' : ''}`}
                     placeholder="••••••••"
                   />
                   <button
@@ -409,7 +397,7 @@ export default function RegisterPage() {
                   <motion.p 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600"
+                    className="form-error-message"
                   >
                     {errors.confirmMotDePasse}
                   </motion.p>
