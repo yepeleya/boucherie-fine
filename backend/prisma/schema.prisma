@@ -9,16 +9,16 @@ datasource db {
 
 /// TABLE UTILISATEURS
 model Utilisateur {
-  id               Int            @id @default(autoincrement())
-  nom              String
-  prenom           String?
-  email            String         @unique
-  telephone        String?
-  adresse          String?
-  motDePasse       String
-  role             Role           @default(CLIENT)
-  dateCreation     DateTime       @default(now())
-  dateModification DateTime       @updatedAt
+  id                Int            @id @default(autoincrement())
+  nom               String
+  prenom            String?
+  email             String         @unique
+  telephone         String?        @db.VarChar(20)
+  adresse           String?
+  motDePasse        String
+  role              Role           @default(CLIENT)
+  dateCreation      DateTime       @default(now())
+  dateModification  DateTime       @updatedAt
 
   reservations Reservation[]
   commandes    Commande[]
@@ -106,7 +106,7 @@ model Reservation {
   heure            String
   nbPersonnes      Int
   salle            String?
-  telephone        String?
+  telephone        String?        @db.VarChar(20)
   commentaires     String?
   statut           StatutReservation @default(EN_ATTENTE)
   dateCreation     DateTime          @default(now())
@@ -138,15 +138,17 @@ model Paiement {
 model Actualite {
   id               Int       @id @default(autoincrement())
   titre            String
+  slug             String    @unique
   contenu          String    @db.Text
-  resume           String?
+  extrait          String?   @db.VarChar(500)
   imageUrl         String?
-  auteur           String?   @default("La Boucherie Fine")
+  categorie        String    @default("Actualités")
+  auteur           String    @default("Administration — La Boucherie Fine")
   actif            Boolean   @default(true)
-  dateDebut        DateTime  @default(now())
-  dateFin          DateTime?
+  datePublication  DateTime  @default(now())
   dateCreation     DateTime  @default(now())
   dateModification DateTime  @updatedAt
+  vues             Int       @default(0)
 
   @@map("actualites")
 }

@@ -44,7 +44,7 @@ export default function Preloader() {
           className="mb-8"
         >
           <Image
-            src="/logo-white.png"
+            src="/logo_blanc.png"
             alt="La Boucherie Fine"
             width={120}
             height={120}

@@ -15,7 +15,8 @@ router.get('/',
     query('statut').optional().isIn(['BROUILLON', 'PUBLIEE', 'ARCHIVEE']).withMessage('Statut invalide'),
     query('dateDebut').optional().isISO8601().withMessage('Date de début invalide'),
     query('dateFin').optional().isISO8601().withMessage('Date de fin invalide'),
-    query('search').optional().isLength({ min: 1, max: 100 }).withMessage('Recherche doit faire entre 1 et 100 caractères')
+    query('search').optional().isLength({ min: 1, max: 100 }).withMessage('Recherche doit faire entre 1 et 100 caractères'),
+    query('categorie').optional().isLength({ min: 1, max: 50 }).withMessage('Catégorie doit faire entre 1 et 50 caractères')
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -34,6 +35,7 @@ router.get('/',
       dateDebut = '',
       dateFin = '',
       search = '',
+      categorie = '',
       publiquesOnly = 'false'
     } = req.query;
 
@@ -41,20 +43,10 @@ router.get('/',
       const skip = (parseInt(page) - 1) * parseInt(limit);
 
       // Construire les filtres
-      const where = {};
-
-      // Si publiquesOnly=true ou utilisateur non authentifié, ne montrer que les actualités publiées
-      if (publiquesOnly === 'true' || !req.user) {
-        where.statut = 'PUBLIEE';
-        where.dateExpiration = {
-          OR: [
-            { gt: new Date() },
-            { equals: null }
-          ]
-        };
-      } else if (statut) {
-        where.statut = statut;
-      }
+      const where = {
+        actif: true,
+        datePublication: { lte: new Date() } // Seulement les actualités publiées
+      };
 
       if (dateDebut || dateFin) {
         where.datePublication = {};
@@ -68,28 +60,34 @@ router.get('/',
 
       if (search) {
         where.OR = [
-          { titre: { contains: search } },
-          { contenu: { contains: search } },
-          { resume: { contains: search } }
+          { titre: { contains: search, mode: 'insensitive' } },
+          { contenu: { contains: search, mode: 'insensitive' } },
+          { extrait: { contains: search, mode: 'insensitive' } }
         ];
+      }
+
+      if (categorie) {
+        where.categorie = categorie;
       }
 
       // Récupérer les actualités avec pagination
       const [actualites, total] = await Promise.all([
         prisma.actualite.findMany({
           where,
-          include: {
-            auteur: {
-              select: {
-                id: true,
-                nom: true,
-                email: true
-              }
-            }
-          },
           skip,
           take: parseInt(limit),
-          orderBy: { datePublication: 'desc' }
+          orderBy: { datePublication: 'desc' },
+          select: {
+            id: true,
+            titre: true,
+            slug: true,
+            extrait: true,
+            imageUrl: true,
+            categorie: true,
+            auteur: true,
+            datePublication: true,
+            vues: true
+          }
         }),
         prisma.actualite.count({ where })
       ]);
@@ -97,14 +95,63 @@ router.get('/',
       res.json({
         actualites,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit))
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          total
         }
       });
     } catch (error) {
       console.error('Erreur récupération actualités:', error);
+      res.status(500).json({
+        error: "Erreur interne du serveur",
+        code: "INTERNAL_ERROR"
+      });
+    }
+  }
+);
+
+// ✅ Récupérer une actualité par slug
+router.get('/slug/:slug',
+  [param('slug').isLength({ min: 1, max: 200 }).withMessage('Slug invalide')],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: "Slug invalide",
+        details: errors.array(),
+        code: "VALIDATION_ERROR"
+      });
+    }
+
+    try {
+      const actualite = await prisma.actualite.findUnique({
+        where: { 
+          slug: req.params.slug
+        }
+      });
+
+      // Vérifier que l'actualité existe, est active et publiée
+      if (!actualite || !actualite.actif || actualite.datePublication > new Date()) {
+        return res.status(404).json({
+          error: "Actualité non trouvée",
+          code: "NEWS_NOT_FOUND"
+        });
+      }
+
+      // Incrémenter le nombre de vues
+      await prisma.actualite.update({
+        where: { id: actualite.id },
+        data: { vues: { increment: 1 } }
+      });
+
+      res.json({
+        actualite: {
+          ...actualite,
+          vues: actualite.vues + 1
+        }
+      });
+    } catch (error) {
+      console.error('Erreur récupération actualité par slug:', error);
       res.status(500).json({
         error: "Erreur interne du serveur",
         code: "INTERNAL_ERROR"
@@ -128,16 +175,7 @@ router.get('/:id',
 
     try {
       const actualite = await prisma.actualite.findUnique({
-        where: { id: parseInt(req.params.id) },
-        include: {
-          auteur: {
-            select: {
-              id: true,
-              nom: true,
-              email: true
-            }
-          }
-        }
+        where: { id: parseInt(req.params.id) }
       });
 
       if (!actualite) {
@@ -147,34 +185,20 @@ router.get('/:id',
         });
       }
 
-      // Vérifier les droits d'accès pour les actualités non publiées
-      if (actualite.statut !== 'PUBLIEE') {
-        if (!req.user || req.user.role !== 'ADMIN') {
-          return res.status(403).json({
-            error: "Accès interdit",
-            code: "ACCESS_DENIED"
-          });
-        }
-      }
-
-      // Vérifier si l'actualité n'est pas expirée (pour les utilisateurs non admin)
-      if (actualite.dateExpiration && actualite.dateExpiration < new Date()) {
-        if (!req.user || req.user.role !== 'ADMIN') {
-          return res.status(404).json({
-            error: "Actualité non trouvée",
-            code: "NEWS_NOT_FOUND"
-          });
-        }
-      }
-
-      // Incrémenter le nombre de vues (seulement pour les actualités publiées)
-      if (actualite.statut === 'PUBLIEE') {
-        await prisma.actualite.update({
-          where: { id: parseInt(req.params.id) },
-          data: { vues: { increment: 1 } }
+      // Vérifier que l'actualité est active et publiée
+      if (!actualite.actif || actualite.datePublication > new Date()) {
+        return res.status(404).json({
+          error: "Actualité non trouvée",
+          code: "NEWS_NOT_FOUND"
         });
-        actualite.vues += 1;
       }
+
+      // Incrémenter le nombre de vues
+      await prisma.actualite.update({
+        where: { id: parseInt(req.params.id) },
+        data: { vues: { increment: 1 } }
+      });
+      actualite.vues += 1;
 
       res.json(actualite);
     } catch (error) {
@@ -186,6 +210,43 @@ router.get('/:id',
     }
   }
 );
+
+// ✅ Récupérer les catégories avec le nombre d'actualités
+router.get('/categories/list', async (req, res) => {
+  try {
+    const categories = await prisma.actualite.groupBy({
+      by: ['categorie'],
+      where: {
+        actif: true,
+        datePublication: { lte: new Date() }
+      },
+      _count: {
+        id: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    const formattedCategories = categories.map(cat => ({
+      nom: cat.categorie,
+      count: cat._count.id
+    }));
+
+    res.json({
+      success: true,
+      categories: formattedCategories
+    });
+  } catch (error) {
+    console.error('Erreur récupération catégories:', error);
+    res.status(500).json({
+      error: "Erreur interne du serveur",
+      code: "INTERNAL_ERROR"
+    });
+  }
+});
 
 // ✅ Créer une nouvelle actualité (admin seulement)
 router.post('/',

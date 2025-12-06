@@ -64,7 +64,7 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3">
               <Image
-                src={isScrolled ? "/logo-white.png" : "/logo-white.png"}
+                src={isScrolled ? "/logo_blanc.png" : "/logo_blanc.png"}
                 alt="La Boucherie Fine"
                 width={54}
                 height={54}

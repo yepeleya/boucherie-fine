@@ -38,7 +38,7 @@ export default function Footer() {
           >
             <div className="flex items-center space-x-3 mb-6">
               <Image
-                src="/logo-white.png"
+                src="/logo_blanc.png"
                 alt="La Boucherie Fine"
                 width={60}
                 height={60}

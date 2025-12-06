@@ -1,5 +1,5 @@
 // Configuration de l'API backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 // Fonction utilitaire pour faire des appels API
 async function apiCall(endpoint, options = {}) {
@@ -128,11 +128,129 @@ export const newsService = {
   }
 };
 
+// Service pour les actualités
+const actualitesService = {
+  // Récupérer toutes les actualités avec pagination et filtres
+  async getAll(params = {}) {
+    try {
+      const searchParams = new URLSearchParams();
+      
+      if (params.page) searchParams.append('page', params.page);
+      if (params.limit) searchParams.append('limit', params.limit);
+      if (params.categorie) searchParams.append('categorie', params.categorie);
+      if (params.search) searchParams.append('search', params.search);
+
+      const queryString = searchParams.toString();
+      const endpoint = `/actualites${queryString ? `?${queryString}` : ''}`;
+
+      const response = await apiCall(endpoint);
+      
+      // Adapter la réponse au format attendu par le frontend
+      return {
+        success: true,
+        data: response.actualites || [],
+        totalPages: response.pagination?.totalPages || 1,
+        currentPage: response.pagination?.currentPage || 1,
+        total: response.pagination?.total || 0
+      };
+    } catch (error) {
+      console.error('Error in actualitesService.getAll:', error);
+      throw error;
+    }
+  },
+
+  // Récupérer une actualité par son slug
+  async getBySlug(slug) {
+    const response = await apiCall(`/actualites/slug/${slug}`);
+    // Adapter la réponse au format attendu par le frontend
+    return {
+      success: true,
+      data: response.actualite
+    };
+  },
+
+  // Récupérer toutes les catégories
+  async getCategories() {
+    try {
+      const response = await apiCall('/actualites/categories/list');
+      
+      // Adapter la réponse au format attendu par le frontend
+      return {
+        success: true,
+        data: response.categories?.map(cat => cat.nom) || []
+      };
+    } catch (error) {
+      console.error('Error in actualitesService.getCategories:', error);
+      // Retourner des catégories par défaut en cas d'erreur
+      return {
+        success: true,
+        data: ['Promotions', 'Événements', 'Nouveautés', 'Services']
+      };
+    }
+  },
+
+  // Services Admin (nécessitent authentification)
+  admin: {
+    // Récupérer toutes les actualités pour l'admin
+    async getAll(params = {}) {
+      const searchParams = new URLSearchParams();
+      
+      if (params.page) searchParams.append('page', params.page);
+      if (params.limit) searchParams.append('limit', params.limit);
+      if (params.categorie) searchParams.append('categorie', params.categorie);
+      if (params.search) searchParams.append('search', params.search);
+      if (params.actif !== undefined) searchParams.append('actif', params.actif);
+
+      const queryString = searchParams.toString();
+      const endpoint = `/actualites/admin/all${queryString ? `?${queryString}` : ''}`;
+
+      return apiCall(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+    },
+
+    // Créer une nouvelle actualité
+    async create(data) {
+      return apiCall('/actualites/admin/create', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+    },
+
+    // Mettre à jour une actualité
+    async update(id, data) {
+      return apiCall(`/actualites/admin/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+    },
+
+    // Supprimer une actualité
+    async delete(id) {
+      return apiCall(`/actualites/admin/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+    }
+  }
+};
+
 const apiServices = {
   reservationService,
   authService,
   productService,
-  newsService
+  newsService,
+  actualitesService
 };
 
 export default apiServices;

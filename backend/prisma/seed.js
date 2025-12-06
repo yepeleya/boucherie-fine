@@ -271,31 +271,45 @@ async function main() {
     prisma.actualite.create({
       data: {
         titre: 'Nouvelle sélection de viandes d\'automne',
-        resume: 'Découvrez notre nouvelle collection de viandes de saison',
-        contenu: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
-        auteur: 'La Boucherie Fine',
-        dateDebut: new Date(),
-        dateFin: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
+        slug: 'nouvelle-selection-viandes-automne',
+        extrait: 'Découvrez notre nouvelle collection de viandes de saison sélectionnées avec soin par nos maîtres bouchers.',
+        contenu: '<p>Cette saison, La Boucherie Fine vous propose une sélection exceptionnelle de viandes d\'automne. Nos maîtres bouchers ont sélectionné pour vous les meilleures pièces de la région, issues d\'élevages respectueux du bien-être animal.</p><p>Au menu de cette nouvelle collection : côte de bœuf maturée 28 jours, agneau de pré-salé, cochon noir de Bigorre, et bien d\'autres délices qui raviront vos papilles.</p>',
+        categorie: 'Nouveautés',
+        auteur: 'Chef Boucher - La Boucherie Fine',
+        imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.actualite.create({
       data: {
-        titre: 'Promotion sur les volailles fermières',
-        resume: 'Profitez de -20% sur toutes nos volailles jusqu\'à dimanche',
-        contenu: 'Cette semaine, bénéficiez d\'une réduction exceptionnelle de 20% sur toute notre gamme de volailles fermières. Une occasion unique de découvrir la qualité de nos produits.',
-        auteur: 'La Boucherie Fine',
-        dateDebut: new Date(),
-        dateFin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
+        titre: 'Promotion exceptionnelle sur les volailles fermières',
+        slug: 'promotion-volailles-fermieres',
+        extrait: 'Profitez de -20% sur toutes nos volailles fermières jusqu\'à dimanche prochain. Une opportunité à ne pas manquer !',
+        contenu: '<p>Cette semaine, bénéficiez d\'une réduction exceptionnelle de 20% sur toute notre gamme de volailles fermières. Une occasion unique de découvrir la qualité exceptionnelle de nos produits.</p><p>Nos volailles sont élevées en plein air dans des fermes partenaires de la région, garantissant une chair tendre et savoureuse. Poulets de Bresse, canards du Périgord, pintades fermières... Tous nos produits sont certifiés Label Rouge.</p><p>Offre valable du mardi au dimanche en magasin et sur commande.</p>',
+        categorie: 'Promotions',
+        auteur: 'Équipe Commerciale - La Boucherie Fine',
+        imageUrl: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.actualite.create({
       data: {
-        titre: 'Ouverture du service traiteur',
-        resume: 'Nous proposons maintenant des plateaux pour vos événements',
-        contenu: 'La Boucherie Fine élargit ses services avec l\'ouverture d\'un service traiteur. Commandez dès maintenant vos plateaux de charcuterie et viandes froides pour vos événements.',
-        auteur: 'La Boucherie Fine',
-        dateDebut: new Date(),
-        dateFin: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 jours
+        titre: 'Lancement de notre service traiteur haut de gamme',
+        slug: 'lancement-service-traiteur',
+        extrait: 'La Boucherie Fine étend ses services avec un nouveau service traiteur pour vos événements et réceptions.',
+        contenu: '<p>Nous sommes fiers d\'annoncer l\'ouverture de notre service traiteur ! Forte de son expertise en matière de viandes d\'exception, La Boucherie Fine propose désormais des plateaux raffinés pour vos événements.</p><p>Notre chef et nos maîtres bouchers ont élaboré une gamme complète : plateaux de charcuteries artisanales, terrines maison, rôtis tranchés, et nos célèbres préparations signature.</p><p>Que ce soit pour un événement professionnel, une réception familiale ou un apéritif entre amis, nous mettons notre savoir-faire à votre service.</p><p>Commandes à effectuer 48h à l\'avance. Devis gratuit sur demande.</p>',
+        categorie: 'Services',
+        auteur: 'Direction - La Boucherie Fine',
+        imageUrl: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?q=80&w=1000&auto=format&fit=crop'
+      }
+    }),
+    prisma.actualite.create({
+      data: {
+        titre: 'Nouveau menu spécial fêtes de fin d\'année',
+        slug: 'nouveau-menu-special-fetes-de-fin-dannee',
+        extrait: 'Préparez dès maintenant vos repas de fête avec notre sélection premium : foie gras, chapons, dinde aux marrons...',
+        contenu: '<p>Les fêtes approchent et La Boucherie Fine vous dévoile sa sélection premium pour des repas inoubliables !</p><p>Notre menu spécial fêtes comprend :<br/>• Foie gras du Sud-Ouest<br/>• Chapons fermiers<br/>• Dindes fermières aux marrons<br/>• Saumons fumés artisanalement<br/>• Plateaux d\'huîtres de Belon<br/>• Bûches glacées maison</p><p>Nos produits sont disponibles sur commande uniquement, pour garantir la fraîcheur et la qualité. Pensez à réserver dès maintenant pour être sûr de ne pas être déçu !</p><p>Commandes ouvertes jusqu\'au 20 décembre. Retrait du 23 au 31 décembre.</p>',
+        categorie: 'Événements',
+        auteur: 'Chef Boucher - La Boucherie Fine',
+        imageUrl: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?q=80&w=1000&auto=format&fit=crop'
       }
     })
   ]);

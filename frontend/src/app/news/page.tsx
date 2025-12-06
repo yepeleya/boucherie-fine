@@ -1,276 +1,504 @@
 'use client';
 
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { CalendarIcon, UserIcon, TagIcon } from '@heroicons/react/24/outline';
+import { 
+  CalendarIcon, 
+  EyeIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  TagIcon,
+  ArrowRightIcon
+} from '@heroicons/react/24/outline';
+import apiServices from '../../services/api';
+import Header from '@/components/Header';
+import Footer from "@/components/Footer";
 
-const newsArticles = [
-  {
-    id: 1,
-    title: 'Nouveau menu spécial Fêtes de fin d\'année',
-    excerpt: 'Découvrez notre menu exclusif pour célébrer les fêtes de fin d\'année avec nos spécialités ivoiriennes revisitées.',
-    content: `Nous sommes ravis de vous présenter notre nouveau menu spécial pour les fêtes de fin d'année ! Notre chef a créé une sélection unique de plats traditionnels ivoiriens revisités avec une touche moderne.
+// Interface pour les actualités
+interface Actualite {
+  id: number;
+  titre: string;
+  slug: string;
+  extrait?: string;
+  contenu?: string;
+  imageUrl?: string;
+  categorie?: string;
+  auteur?: string;
+  datePublication: string;
+  vues?: number;
+}
 
-Au menu : Kedjenou de pintade aux épices festives, Attiéké doré aux crevettes géantes, et notre dessert signature : la mousse au chocolat ivoirien avec fruits tropicaux.
+export default function ActualitesPage() {
+  const [actualites, setActualites] = useState<Actualite[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const articlesPerPage = 6;
 
-Réservations recommandées du 20 décembre au 5 janvier. Profitez également de notre ambiance festive avec décoration traditionnelle et musique live le weekend.`,
-    author: 'Chef Kouadio',
-    date: '2024-12-15',
-    category: 'Menu',
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=800',
-    featured: true
-  },
-  {
-    id: 2,
-    title: 'Ouverture du service livraison express',
-    excerpt: 'Commandez en ligne et recevez vos plats préférés en moins de 30 minutes dans toute la zone d\'Abidjan.',
-    content: `Grande nouvelle ! Nous lançons officiellement notre service de livraison express. Désormais, vous pouvez commander vos plats préférés en ligne et les recevoir chez vous en moins de 30 minutes.
+  const loadActualites = async (page: number = 1, search: string = '', category: string = '') => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await apiServices.actualitesService.getAll({
+        page, limit: articlesPerPage, search, categorie: category
+      });
+      
+      if (response && response.success) {
+        setActualites(response.data || []);
+        setTotalPages(response.totalPages || 1);
+        setCurrentPage(response.currentPage || 1);
+      } else {
+        setError('Erreur lors du chargement des actualités');
+      }
+    } catch (error) {
+      console.error('Erreur chargement actualités:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      setError(`Impossible de charger les actualités: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-Zone de livraison : Riviera 3, Cocody, Marcory, Treichville, Adjamé et Yopougon.
-Frais de livraison : 1000 FCFA
-Commande minimum : 5000 FCFA
+  const loadCategories = async () => {
+    try {
+      const response = await apiServices.actualitesService.getCategories();
+      
+      if (response && response.success) {
+        setCategories(response.data || []);
+      }
+    } catch (error) {
+      console.error('Erreur de chargement des catégories:', error);
+      // Utiliser des catégories par défaut en cas d'erreur
+      setCategories(['Promotions', 'Événements', 'Nouveautés', 'Services']);
+    }
+  };
 
-Notre équipe de livreurs professionnels garantit la fraîcheur et la qualité de vos plats jusqu'à votre porte.`,
-    author: 'Direction',
-    date: '2024-12-10',
-    category: 'Service',
-    image: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800',
-    featured: false
-  },
-  {
-    id: 3,
-    title: 'Formation culinaire : Atelier Kedjenou',
-    excerpt: 'Apprenez à préparer le fameux Kedjenou traditionnel lors de notre atelier culinaire mensuel.',
-    content: `Rejoignez-nous pour notre atelier culinaire mensuel ! Ce mois-ci, notre chef vous apprendra les secrets du Kedjenou traditionnel, ce plat emblématique de la Côte d'Ivoire.
+  useEffect(() => {
+    const initializeData = async () => {
+      
+      // Tentative de chargement avec retry
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          await loadActualites();
+          await loadCategories();
+          break; // Succès, sortir de la boucle
+        } catch (error) {
+          retryCount++;
+          console.warn(`Tentative ${retryCount}/${maxRetries} échouée:`, error);
+          
+          if (retryCount < maxRetries) {
+            console.log(`Nouvelle tentative dans 2 secondes...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+            console.error('Échec après toutes les tentatives');
+            setError('Impossible de se connecter au serveur. Vérifiez votre connexion.');
+          }
+        }
+      }
+    };
+    
+    initializeData();
+  }, []);
 
-Au programme :
-- Histoire et origine du Kedjenou
-- Choix des ingrédients et épices
-- Technique de cuisson dans la poterie
-- Dégustation et conseils du chef
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      loadActualites(1, searchTerm, selectedCategory);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, selectedCategory]);
 
-Date : Samedi 23 décembre à 14h
-Durée : 3 heures
-Tarif : 15 000 FCFA par personne (repas inclus)
-Places limitées à 12 participants.`,
-    author: 'Chef Kouadio',
-    date: '2024-12-08',
-    category: 'Événement',
-    image: 'https://images.unsplash.com/photo-1556909114-d5b5ae80a0d5?w=800',
-    featured: false
-  },
-  {
-    id: 4,
-    title: 'Partenariat avec les producteurs locaux',
-    excerpt: 'Nous renforçons notre engagement pour la qualité en nous associant directement avec les producteurs locaux.',
-    content: `Dans notre démarche de qualité et de soutien à l'économie locale, nous avons signé des partenariats exclusifs avec plusieurs producteurs locaux de Côte d'Ivoire.
+  const handlePageChange = (newPage: number) => {
+    loadActualites(newPage, searchTerm, selectedCategory);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-Nos nouveaux partenaires :
-- Ferme bio de Yamoussoukro pour nos légumes
-- Coopérative de pêcheurs de Grand-Bassam
-- Producteurs de riz de Bouaké
-- Éleveurs de volaille de Korhogo
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
-Cette démarche nous permet de garantir la fraîcheur de nos produits tout en soutenant nos agriculteurs et pêcheurs locaux.`,
-    author: 'Direction',
-    date: '2024-12-05',
-    category: 'Partenariat',
-    image: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=800',
-    featured: false
-  },
-  {
-    id: 5,
-    title: 'Nouvelle décoration inspirée de l\'art baoulé',
-    excerpt: 'Découvrez notre nouvelle décoration intérieure qui met à l\'honneur l\'art traditionnel baoulé.',
-    content: `Nous avons le plaisir de vous dévoiler notre nouvelle décoration intérieure, fruit d'une collaboration avec des artisans baoulés de la région de Bouaké.
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + '...';
+  };
 
-Nouveautés :
-- Sculptures en bois précieux dans l'espace d'accueil
-- Tissus kente authentiques pour les nappes
-- Masques traditionnels exposés dans la salle
-- Poteries décoratives de Katiola
-
-Cette ambiance authentique vous plonge encore plus dans la culture ivoirienne tout en dégustant nos spécialités.`,
-    author: 'Équipe Design',
-    date: '2024-12-01',
-    category: 'Décoration',
-    image: 'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800',
-    featured: false
+  if (error) {
+    return (
+      <div className="min-h-screen bg-restaurant-black text-restaurant-white">
+        <Header />
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto p-8">
+            <div className="text-restaurant-primary text-6xl mb-6">⚠️</div>
+            <h1 className="text-3xl font-bold mb-4" style={{ fontFamily: "var(--font-playfair)" }}>
+              Erreur de chargement
+            </h1>
+            <p className="text-restaurant-white/80 mb-4">{error}</p>
+            <div className="text-sm text-restaurant-white/60 mb-6 bg-restaurant-white/5 p-4 rounded-lg">
+              <p><strong>Diagnostic:</strong></p>
+              <p>• API Backend: http://localhost:3002</p>
+              <p>• Frontend: http://localhost:3000</p>
+              <p>• Vérifiez que les deux serveurs sont démarrés</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => {
+                  setError(null);
+                  loadActualites();
+                  loadCategories();
+                }}
+                className="bg-restaurant-primary hover:bg-restaurant-primary/80 text-restaurant-black font-semibold px-6 py-3 rounded-lg transition-colors duration-200"
+              >
+                Réessayer
+              </button>
+              <button 
+                onClick={() => {
+                  // Test de connexion direct
+                  fetch('http://localhost:3002/api/actualites')
+                    .then(res => res.json())
+                    .then(data => {
+                      alert('✅ Connexion API réussie ! ' + data.actualites?.length + ' actualités trouvées.');
+                      setError(null);
+                      loadActualites();
+                    })
+                    .catch(err => {
+                      alert('❌ Échec de connexion API: ' + err.message);
+                    });
+                }}
+                className="bg-transparent border border-restaurant-primary text-restaurant-primary hover:bg-restaurant-primary hover:text-restaurant-black font-semibold px-6 py-3 rounded-lg transition-colors duration-200"
+              >
+                Tester la connexion
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
-];
-
-export default function NewsPage() {
-  const featuredArticle = newsArticles.find(article => article.featured);
-  const otherArticles = newsArticles.filter(article => !article.featured);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen text-restaurant-white page-entrance">
       <Header />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-r from-amber-600 to-red-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 text-center">
+      {/* HERO SECTION - Style identique à la page d'accueil */}
+      <section className="relative h-[60vh] flex items-center">
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <Image 
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1600&auto=format&fit=crop" 
+            alt="Actualités La Boucherie Fine" 
+            fill 
+            className="object-cover brightness-50" 
+            unoptimized 
+          />
+        </div>
+
+        <div className="hero-overlay"></div>
+        
+        <div className="container mx-auto px-6 relative z-20 text-center">
           <motion.h1
-            className="text-4xl md:text-6xl font-bold mb-6"
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.9 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl mx-auto tracking-tight text-shadow"
+            style={{ fontFamily: "var(--font-playfair)" }}
           >
-            Actualités
+            Actualités & Nouvelles
           </motion.h1>
+
           <motion.p
-            className="text-xl opacity-90 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="mt-6 text-lg md:text-xl text-restaurant-white/85 max-w-2xl mx-auto"
           >
-            Restez informé de toutes les nouveautés de La Boucherie Fine
+            Découvrez les dernières nouvelles, événements et coulisses de La Boucherie Fine.
           </motion.p>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        {/* Article vedette */}
-        {featuredArticle && (
-          <motion.div
-            className="mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="bg-white rounded-3xl overflow-hidden shadow-2xl">
-              <div className="grid lg:grid-cols-2 gap-0">
-                <div className="relative h-64 lg:h-full">
-                  <img
-                    src={featuredArticle.image}
-                    alt={featuredArticle.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4 bg-amber-600 text-white px-4 py-2 rounded-full font-semibold">
-                    Article vedette
-                  </div>
-                </div>
-                <div className="p-8 lg:p-12">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <CalendarIcon className="w-4 h-4" />
-                      <span>{new Date(featuredArticle.date).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <UserIcon className="w-4 h-4" />
-                      <span>{featuredArticle.author}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <TagIcon className="w-4 h-4" />
-                      <span>{featuredArticle.category}</span>
-                    </div>
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
-                    {featuredArticle.title}
-                  </h2>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {featuredArticle.excerpt}
-                  </p>
-                  <div className="prose prose-gray max-w-none text-gray-700 leading-relaxed">
-                    {featuredArticle.content.split('\n\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4">{paragraph}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
+      {/* FILTRES ET RECHERCHE - Style cohérent */}
+      <section className="py-12 bg-restaurant-white text-restaurant-black">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+            {/* Barre de recherche */}
+            <div className="relative flex-1 max-w-lg">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Rechercher dans les actualités..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-full focus:border-restaurant-primary focus:outline-none transition-all duration-300 text-lg"
+              />
             </div>
-          </motion.div>
-        )}
 
-        {/* Autres articles */}
-        <div>
-          <motion.h2
-            className="text-3xl font-bold text-gray-800 mb-8 text-center"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            Autres actualités
-          </motion.h2>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {otherArticles.map((article, index) => (
-              <motion.article
-                key={article.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
+            {/* Filtre par catégorie */}
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  const newCategory = e.target.value;
+                  setSelectedCategory(newCategory);
+                  setCurrentPage(1); // Reset à la page 1 lors du changement de catégorie
+                }}
+                className="px-6 py-4 border-2 border-gray-200 rounded-full focus:border-restaurant-primary focus:outline-none bg-white text-lg font-medium min-w-[200px]"
+                aria-label="Filtrer par catégorie"
               >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4 bg-white bg-opacity-90 text-amber-600 px-3 py-1 rounded-full text-sm font-semibold">
-                    {article.category}
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                    <div className="flex items-center space-x-1">
-                      <CalendarIcon className="w-4 h-4" />
-                      <span>{new Date(article.date).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <UserIcon className="w-4 h-4" />
-                      <span>{article.author}</span>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
-                    {article.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-                  
-                  <button className="text-amber-600 hover:text-amber-700 font-semibold transition-colors">
-                    Lire la suite →
-                  </button>
-                </div>
-              </motion.article>
-            ))}
+                <option value="">Toutes les catégories</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+              
+              {(searchTerm || selectedCategory) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('');
+                    setCurrentPage(1);
+                  }}
+                  className="p-3 text-restaurant-primary hover:bg-restaurant-primary hover:text-white rounded-full transition-all duration-300"
+                  title="Effacer les filtres"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Newsletter */}
-        <motion.section
-          className="mt-20 bg-gradient-to-r from-amber-600 to-red-600 rounded-3xl p-8 lg:p-12 text-white text-center"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl font-bold mb-4">Restez informé</h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Inscrivez-vous à notre newsletter pour recevoir toutes nos actualités et offres spéciales
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Votre adresse email"
-              className="flex-1 px-6 py-3 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <button className="bg-white text-amber-600 hover:bg-gray-100 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105">
-              S&apos;inscrire
-            </button>
+      {/* INDICATEURS DE FILTRES */}
+      <div className="bg-restaurant-black py-6 border-b border-restaurant-primary/20">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-restaurant-white/80">
+                {loading ? 'Chargement...' : `${actualites.length} actualité${actualites.length > 1 ? 's' : ''} trouvée${actualites.length > 1 ? 's' : ''}`}
+              </span>
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-restaurant-primary/20 border border-restaurant-primary rounded-full text-restaurant-primary text-sm">
+                  <TagIcon className="h-4 w-4" />
+                  {selectedCategory}
+                </span>
+              )}
+            </div>
+            {(searchTerm || selectedCategory) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                  setCurrentPage(1);
+                }}
+                className="text-sm text-restaurant-white/60 hover:text-restaurant-primary transition-colors duration-200"
+              >
+                Effacer tous les filtres
+              </button>
+            )}
           </div>
-        </motion.section>
+        </div>
       </div>
 
+      {/* CONTENU PRINCIPAL - Style identique à la section des plats */}
+      <section className="py-20 bg-restaurant-black">
+        <div className="container mx-auto px-6">
+          {loading ? (
+            // Skeleton loader avec le style de la page d'accueil
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="bg-restaurant-white rounded-2xl overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-300"></div>
+                  <div className="p-6">
+                    <div className="h-4 bg-gray-300 rounded mb-3"></div>
+                    <div className="h-6 bg-gray-300 rounded mb-4"></div>
+                    <div className="space-y-2 mb-4">
+                      <div className="h-3 bg-gray-300 rounded"></div>
+                      <div className="h-3 bg-gray-300 rounded w-4/5"></div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-gray-300 rounded w-20"></div>
+                      <div className="h-8 bg-gray-300 rounded w-24"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : actualites.length === 0 ? (
+            // État vide avec le style de la page d'accueil
+            <div className="text-center py-20">
+              <div className="text-restaurant-primary text-8xl mb-6">📰</div>
+              <h2 className="text-3xl font-bold mb-4 text-restaurant-white" style={{ fontFamily: "var(--font-playfair)" }}>
+                {searchTerm || selectedCategory ? 'Aucun résultat trouvé' : 'Aucune actualité disponible'}
+              </h2>
+              <p className="text-restaurant-white/80 mb-8 text-lg max-w-2xl mx-auto">
+                {searchTerm || selectedCategory 
+                  ? 'Essayez avec d&apos;autres mots-clés ou explorez toutes nos catégories.' 
+                  : 'Nos dernières actualités arrivent bientôt. Restez connectés pour ne rien manquer !'
+                }
+              </p>
+              {(searchTerm || selectedCategory) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('');
+                  }}
+                  className="btn-primary"
+                >
+                  Voir toutes les actualités
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Grille des actualités - Style identique aux cartes de plats */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                {actualites.map((actualite) => (
+                  <motion.article 
+                    key={actualite.id}
+                    className="bg-restaurant-white rounded-2xl overflow-hidden text-restaurant-black shadow-lg hover:shadow-2xl transform hover:scale-102 transition-all duration-300 border-2 border-transparent hover:border-restaurant-primary"
+                    whileHover={{ y: -6 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    {/* Image */}
+                    <div className="h-48 overflow-hidden relative">
+                      {actualite.imageUrl ? (
+                        <Image
+                          src={actualite.imageUrl}
+                          alt={actualite.titre}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-restaurant-primary to-restaurant-primary/80 flex items-center justify-center">
+                          <div className="text-white text-5xl">📰</div>
+                        </div>
+                      )}
+                      
+                      {/* Badge catégorie */}
+                      {actualite.categorie && (
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-restaurant-primary text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                            <TagIcon className="inline h-3 w-3 mr-1" />
+                            {actualite.categorie}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Contenu */}
+                    <div className="p-6">
+                      {/* Métadonnées */}
+                      <div className="flex items-center text-sm text-gray-500 mb-3">
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        <span>{formatDate(actualite.datePublication)}</span>
+                        {actualite.vues !== undefined && (
+                          <>
+                            <EyeIcon className="h-4 w-4 ml-4 mr-2" />
+                            <span>{actualite.vues} vues</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Titre */}
+                      <h3 className="text-xl font-bold mb-3 line-clamp-2 hover:text-restaurant-primary transition-colors" style={{ fontFamily: "var(--font-playfair)" }}>
+                        {actualite.titre}
+                      </h3>
+
+                      {/* Résumé */}
+                      <p className="text-gray-600 mb-4 line-clamp-3 text-sm leading-relaxed">
+                        {actualite.extrait || truncateText(actualite.contenu || '', 120)}
+                      </p>
+
+                      {/* Bouton "Lire plus" - Style identique aux boutons de la page d'accueil */}
+                      <div className="flex items-center justify-between">
+                        <Link 
+                          href={`/news/${actualite.slug}`}
+                          className="inline-flex items-center text-restaurant-primary font-bold hover:text-restaurant-primary/80 transition-colors group"
+                        >
+                          Lire la suite
+                          <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        
+                        <div className="text-xs text-gray-400">
+                          {Math.ceil((actualite.contenu?.length || 0) / 500)} min de lecture
+                        </div>
+                      </div>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+
+              {/* Pagination - Style cohérent */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-6 py-3 bg-restaurant-white/10 text-restaurant-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:bg-restaurant-white/20 transition-all duration-300 font-semibold"
+                  >
+                    Précédent
+                  </button>
+                  
+                  <div className="flex space-x-2 mx-4">
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
+                            currentPage === pageNum
+                              ? 'bg-restaurant-primary text-white shadow-lg'
+                              : 'bg-restaurant-white/10 text-restaurant-white hover:bg-restaurant-white/20'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-6 py-3 bg-restaurant-white/10 text-restaurant-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:bg-restaurant-white/20 transition-all duration-300 font-semibold"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
       <Footer />
-    </div>
+    </main>
   );
 }

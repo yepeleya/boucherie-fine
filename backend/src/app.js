@@ -13,6 +13,7 @@ const cronService = require('./services/cronService');
 const { generalLimiter } = require('./middlewares/rateLimiting');
 
 // Import des routes
+const authRoutes = require('./routes/auth');
 const utilisateursRoutes = require('./routes/utilisateurs');
 const produitsRoutes = require('./routes/produits');
 const commandesRoutes = require('./routes/commandes');
@@ -41,6 +42,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Configuration des routes
+app.use('/api/auth', authRoutes);
 app.use('/api/utilisateurs', utilisateursRoutes);
 app.use('/api/produits', produitsRoutes);
 app.use('/api/commandes', commandesRoutes);
@@ -137,7 +139,7 @@ const startServer = async () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📡 Socket.IO activé pour les notifications temps réel`);
       console.log(`⏰ Tâches CRON activées`);
-      console.log(`🌐 CORS configuré pour: ${process.env.FRONTEND_URL || 'http://localhost:5176'}`);
+      console.log(`🌐 CORS configuré pour: ${process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5176'].join(', ')}`);
     });
   } catch (error) {
     console.error('❌ Erreur lors du démarrage du serveur:', error);
@@ -161,6 +163,3 @@ process.on('SIGTERM', async () => {
 });
 
 startServer();
-app.listen(PORT, () => {
-  console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);
-});

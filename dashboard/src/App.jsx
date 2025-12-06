@@ -6,6 +6,7 @@ import DashboardLayout from './layouts/DashboardLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Login from './pages/Login.jsx';
 import Home from './pages/Home.jsx';
+import ActualitesManagement from './pages/ActualitesManagement.jsx';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
               } 
             >
               <Route index element={<Home />} />
+              <Route path="actualites" element={<ActualitesManagement />} />
               {/* Les autres pages seront ajoutées progressivement */}
             </Route>
             
