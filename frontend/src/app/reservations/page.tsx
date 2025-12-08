@@ -51,6 +51,7 @@ const Toast = ({ type, message, onClose }: ToastProps) => (
 );
 
 export default function ReservationsPage() {
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState<ReservationFormData>({
     nom: "",
     email: "",
@@ -70,6 +71,11 @@ export default function ReservationsPage() {
     '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
     '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'
   ];
+
+  // Gérer l'état mounted pour éviter les problèmes d'hydratation
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-fermeture du toast après 5 secondes
   useEffect(() => {
@@ -220,6 +226,19 @@ export default function ReservationsPage() {
   // Date minimale (aujourd'hui)
   const today = new Date().toISOString().split('T')[0];
 
+  // Éviter les problèmes d'hydratation en attendant le montage complet
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-restaurant-black text-restaurant-white">
+        <Header />
+        <div className="flex items-center justify-center h-96">
+          <div className="w-8 h-8 border-2 border-restaurant-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-restaurant-black text-restaurant-white">
       {/* Toast Notifications */}
@@ -259,10 +278,10 @@ export default function ReservationsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-6xl font-bold mb-6"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl mx-auto tracking-tight text-shadow mb-6"
             style={{ fontFamily: "var(--font-playfair)" }}
           >
-            Réservez votre table à <span className="text-restaurant-primary">La Boucherie-Fine</span>
+            Réservations & Tables
           </motion.h1>
           
           <motion.p

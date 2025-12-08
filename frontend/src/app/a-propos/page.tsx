@@ -2,143 +2,363 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { motion } from 'framer-motion';
-import { StarIcon, HeartIcon, TrophyIcon, UsersIcon } from '@heroicons/react/24/solid';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { 
+  StarIcon, 
+  ShieldCheckIcon, 
+  FireIcon, 
+  UserGroupIcon,
+  CheckBadgeIcon,
+  EyeIcon,
+  HeartIcon,
+  TrophyIcon
+} from '@heroicons/react/24/outline';
+import { useRef, useEffect, useState } from 'react';
 
+// Équipe dirigeante
 const teamMembers = [
   {
-    name: 'Chef Kouadio Aman',
-    position: 'Chef Exécutif',
-    bio: 'Fort de 15 ans d\'expérience dans la cuisine ivoirienne, le Chef Kouadio a travaillé dans les plus grands restaurants d\'Abidjan avant de rejoindre notre équipe.',
-    image: 'https://images.unsplash.com/photo-1583394293214-28a5462c5573?w=400'
+    name: 'Chef Laurent Kouassi',
+    position: 'Chef Exécutif & Propriétaire',
+    bio: 'Maître-boucher depuis 20 ans, Laurent a perfectionné l\'art de la sélection et de la préparation des viandes premium.',
+    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=800&auto=format&fit=crop',
+    experience: '20+ ans d\'expertise'
   },
   {
-    name: 'Adjoua N\'Guessan',
-    position: 'Responsable Service',
-    bio: 'Spécialiste de l\'accueil et du service client, Adjoua veille à ce que chaque client vive une expérience mémorable.',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616c19e3c93?w=400'
+    name: 'Marie-Claire Adjoua',
+    position: 'Directrice du Service',
+    bio: 'Garante de l\'excellence du service, Marie-Claire orchestre chaque expérience client avec passion.',
+    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop',
+    experience: 'Service d\'exception'
   },
   {
-    name: 'Kouame Yao',
-    position: 'Sommelier',
-    bio: 'Expert en vins et boissons traditionnelles, Kouame conseille nos clients pour les meilleurs accords mets-boissons.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
+    name: 'Jean-Baptiste Yao',
+    position: 'Maître Grillardin',
+    bio: 'Spécialiste des cuissons parfaites, Jean-Baptiste révèle toute la saveur de nos viandes d\'exception.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+    experience: 'Cuissons maîtrisées'
   }
 ];
 
+// Valeurs et engagements  
 const values = [
   {
-    icon: HeartIcon,
-    title: 'Passion',
-    description: 'Nous mettons tout notre cœur dans chaque plat que nous préparons, en respectant les traditions culinaires ivoiriennes.'
+    icon: CheckBadgeIcon,
+    title: 'Authenticité',
+    description: 'Nous préservons les traditions culinaires tout en innovant avec créativité et respect.'
+  },
+  {
+    icon: EyeIcon,
+    title: 'Traçabilité',
+    description: 'Chaque produit est sélectionné chez nos partenaires de confiance pour garantir la qualité.'
   },
   {
     icon: TrophyIcon,
-    title: 'Excellence',
-    description: 'Nous recherchons constamment l\'excellence dans nos produits, notre service et l\'expérience client.'
+    title: 'Qualité Supérieure',
+    description: 'Nos standards d\'excellence ne souffrent d\'aucun compromis, de la sélection au service.'
   },
   {
-    icon: UsersIcon,
-    title: 'Convivialité',
-    description: 'Nous créons un environnement chaleureux où chaque client se sent comme à la maison.'
-  },
-  {
-    icon: StarIcon,
-    title: 'Authenticité',
-    description: 'Nous préservons et célébrons l\'authenticité de la cuisine ivoirienne dans toute sa richesse.'
+    icon: HeartIcon,
+    title: 'Satisfaction Client',
+    description: 'Votre bonheur gustatif est notre plus belle récompense et notre motivation quotidienne.'
   }
 ];
 
-export default function AboutPage() {
+// Expertise 
+const expertise = [
+  {
+    icon: StarIcon,
+    title: 'Sélection Rigoureuse',
+    description: 'Nos viandes sont choisies auprès d\'éleveurs partenaires pour leur qualité exceptionnelle et leur traçabilité.',
+    color: 'from-red-600 to-red-800'
+  },
+  {
+    icon: FireIcon,
+    title: 'Préparation Artisanale',
+    description: 'Chaque pièce est préparée selon les règles de l\'art par nos maîtres-bouchers expérimentés.',
+    color: 'from-orange-600 to-red-600'
+  },
+  {
+    icon: ShieldCheckIcon,
+    title: 'Cuisson Maîtrisée',
+    description: 'Nos grillardins expert révèlent tous les arômes grâce à des techniques de cuisson précises.',
+    color: 'from-red-700 to-red-900'
+  },
+  {
+    icon: UserGroupIcon,
+    title: 'Service Haut de Gamme',
+    description: 'Une équipe passionnée vous accompagne pour une expérience gastronomique mémorable.',
+    color: 'from-red-800 to-black'
+  }
+];
+
+// Counters animés
+const CounterItem = ({ number, label, suffix = "" }: { number: number, label: string, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+          let start = 0;
+          const duration = 2000;
+          const step = (timestamp: number) => {
+            if (!start) start = timestamp;
+            const progress = Math.min((timestamp - start) / duration, 1);
+            setCount(Math.floor(progress * number));
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            }
+          };
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [number, isVisible]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div ref={ref} className="text-center">
+      <div className="text-4xl md:text-5xl font-bold text-red-600 mb-2">
+        {count}{suffix}
+      </div>
+      <div className="text-white/80 text-sm uppercase tracking-wider">{label}</div>
+    </div>
+  );
+};
+
+export default function AboutPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+
+  return (
+    <main className="min-h-screen bg-restaurant-black text-restaurant-white page-entrance" ref={containerRef}>
       <Header />
       
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-r from-amber-600 to-red-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <motion.h1
-            className="text-4xl md:text-6xl font-bold mb-6"
+      {/* 1️⃣ Hero Section Immersive avec Parallax */}
+      <section className="relative h-[60vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 w-full h-full">
+          <motion.div 
+            style={{ y }}
+            className="w-full h-[120%]"
+          >
+            <Image
+              src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=2070&auto=format&fit=crop"
+              alt="La Boucherie Fine - Excellence"
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </motion.div>
+          <div className="absolute inset-0 bg-black/70"></div>
+        </div>
+
+        <div className="hero-overlay"></div>
+        
+        <div className="container mx-auto px-6 relative z-20 text-center">
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
+            className="mb-6"
           >
-            À propos de nous
-          </motion.h1>
-          <motion.p
-            className="text-xl opacity-90 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
+            <span className="text-6xl">🥩</span>
+          </motion.div>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl mx-auto tracking-tight text-shadow mb-6"
+            style={{ fontFamily: "var(--font-playfair)" }}
           >
-            Découvrez l&apos;histoire de La Boucherie Fine et notre passion pour la cuisine ivoirienne authentique
+            Histoire & Tradition
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="text-2xl md:text-3xl text-restaurant-white/90 mb-8 max-w-4xl mx-auto leading-relaxed"
+          >
+            L&apos;excellence de la viande, une passion artisanale.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.6 }}
+          >
+            <Link 
+              href="#notre-histoire"
+              className="btn-primary text-lg px-8 py-4 inline-flex items-center"
+            >
+              Découvrir notre histoire
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* Notre Histoire */}
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      {/* 2️⃣ Section - Notre Histoire */}
+      <section id="notre-histoire" className="py-32 bg-restaurant-white">
+        <div className="container mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 1 }}
               viewport={{ once: true }}
+              className="space-y-8"
             >
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">Notre Histoire</h2>
-              <div className="space-y-4 text-gray-600 leading-relaxed">
+              <div>
+                <h2 className="text-5xl font-bold text-restaurant-black mb-8" style={{ fontFamily: "var(--font-playfair)" }}>
+                  Notre Histoire
+                </h2>
+                <div className="w-20 h-1 bg-red-600 mb-8"></div>
+              </div>
+              
+              <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
                 <p>
-                  Fondée en 2015, La Boucherie Fine est née de la passion de préserver et de célébrer 
-                  la richesse culinaire de la Côte d&apos;Ivoire. Notre fondateur, inspiré par les recettes 
-                  traditionnelles de sa grand-mère, a voulu créer un lieu où l&apos;authenticité rencontre 
-                  l&apos;excellence.
+                  <strong className="text-red-600">Fondée en 2018</strong>, La Boucherie-Fine est née d&apos;une vision simple : 
+                  révolutionner l&apos;art de la viande premium en Côte d&apos;Ivoire. Notre fondateur, passionné de gastronomie, 
+                  a voulu créer plus qu&apos;un restaurant – un véritable temple de la haute cuisine carnivore.
                 </p>
+                
                 <p>
-                  Située au cœur d&apos;Abidjan, notre restaurant s&apos;est rapidement imposé comme une référence 
-                  de la gastronomie ivoirienne. Nous travaillons exclusivement avec des producteurs locaux 
-                  pour garantir la fraîcheur et la qualité de nos ingrédients.
+                  <strong>Pourquoi &ldquo;Boucherie-Fine&rdquo; ?</strong> Ce nom reflète notre double expertise : 
+                  la maîtrise artisanale du boucher et la finesse du chef. Chaque pièce de viande est 
+                  sélectionnée, préparée et cuisinée selon les plus hauts standards internationaux.
                 </p>
+                
                 <p>
-                  Aujourd&apos;hui, nous continuons cette mission avec la même passion, en proposant une 
-                  expérience culinaire authentique dans un cadre moderne et accueillant.
+                  <strong>Notre mission :</strong> Offrir une expérience gastronomique d&apos;exception, 
+                  où chaque bouchée révèle la noblesse du produit et le savoir-faire de nos artisans.
+                </p>
+                
+                <p>
+                  <strong className="text-red-600">Notre engagement qualité :</strong> Traçabilité totale, 
+                  partenariats exclusifs avec les meilleurs éleveurs, et une exigence sans compromis 
+                  de la sélection à l&apos;assiette.
                 </p>
               </div>
             </motion.div>
+            
             <motion.div
-              className="relative"
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 1 }}
               viewport={{ once: true }}
+              className="relative"
             >
-              <img
-                src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600"
-                alt="Notre restaurant"
-                className="rounded-2xl shadow-2xl"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-amber-600 text-white p-6 rounded-2xl">
-                <div className="text-3xl font-bold">9+</div>
-                <div className="text-sm">Années d&apos;expérience</div>
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                <Image
+                  src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?q=80&w=1000&auto=format&fit=crop"
+                  alt="Chef en action"
+                  width={600}
+                  height={400}
+                  className="w-full h-[500px] object-cover"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              </div>
+              
+              <div className="absolute -bottom-8 -left-8 bg-red-600 text-white p-8 rounded-2xl shadow-xl">
+                <div className="text-4xl font-bold">7+</div>
+                <div className="text-sm uppercase tracking-wider">Années d&apos;Excellence</div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Nos Valeurs */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
+      {/* 3️⃣ Section - Notre Expertise */}
+      <section className="py-32 bg-restaurant-black">
+        <div className="container mx-auto px-6">
           <motion.div
-            className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Nos Valeurs</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Les principes qui guident notre approche de la cuisine et du service
+            <h2 className="text-5xl font-bold text-restaurant-white mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
+              Notre Expertise
+            </h2>
+            <p className="text-xl text-restaurant-white/80 max-w-3xl mx-auto">
+              Quatre piliers d&apos;excellence qui font de chaque visite une expérience mémorable
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {expertise.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 50, rotateX: -15 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  y: -10, 
+                  rotateX: 5,
+                  scale: 1.02,
+                  boxShadow: "0 25px 50px rgba(220, 38, 38, 0.3)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="group bg-restaurant-white rounded-3xl p-8 hover:bg-red-50 transition-all duration-500 cursor-pointer"
+              >
+                <motion.div 
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${item.color} flex items-center justify-center mb-6`}
+                  whileHover={{ rotate: 360, scale: 1.2 }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                >
+                  <item.icon className="h-8 w-8 text-white" />
+                </motion.div>
+                
+                <h3 className="text-xl font-bold text-restaurant-black mb-4 group-hover:text-red-600 transition-colors">
+                  {item.title}
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed">
+                  {item.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4️⃣ Section - Valeurs & Engagements */}
+      <section className="py-32 bg-gradient-to-br from-gray-900 to-restaurant-black">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-5xl font-bold text-restaurant-white mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
+              Nos Valeurs & Engagements
+            </h2>
+            <p className="text-xl text-restaurant-white/80 max-w-3xl mx-auto">
+              Les principes fondamentaux qui guident chacune de nos actions
             </p>
           </motion.div>
 
@@ -146,135 +366,189 @@ export default function AboutPage() {
             {values.map((value, index) => (
               <motion.div
                 key={value.title}
-                className="text-center p-6 rounded-2xl bg-gray-50 hover:bg-amber-50 transition-all duration-300"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                initial={{ opacity: 0, scale: 0.8, y: 30 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
                 viewport={{ once: true }}
-                whileHover={{ y: -5 }}
+                whileHover={{ 
+                  y: -8, 
+                  scale: 1.05,
+                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  borderColor: "rgba(220, 38, 38, 0.5)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="text-center p-8 bg-restaurant-white/5 backdrop-blur-sm rounded-3xl border border-white/10 transition-all duration-300 group cursor-pointer"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-600 text-white rounded-full mb-4">
-                  <value.icon className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">{value.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                <motion.div 
+                  className="w-20 h-20 mx-auto mb-6 bg-red-600/20 rounded-2xl flex items-center justify-center group-hover:bg-red-600 transition-colors duration-300"
+                  whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <value.icon className="h-10 w-10 text-red-600 group-hover:text-white transition-colors duration-300" />
+                </motion.div>
+                
+                <h3 className="text-xl font-bold text-restaurant-white mb-4">
+                  {value.title}
+                </h3>
+                
+                <p className="text-restaurant-white/70 leading-relaxed">
+                  {value.description}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Notre Équipe */}
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-4">
+      {/* 5️⃣ Section - L'Équipe */}
+      <section className="py-32 bg-restaurant-white">
+        <div className="container mx-auto px-6">
           <motion.div
-            className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Notre Équipe</h2>
+            <h2 className="text-5xl font-bold text-restaurant-black mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
+              Notre Équipe d&apos;Exception
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Rencontrez les professionnels passionnés qui font de La Boucherie Fine un lieu d&apos;exception
+              Des professionnels passionnés qui incarnent l&apos;excellence de La Boucherie-Fine
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-12">
             {teamMembers.map((member, index) => (
               <motion.div
                 key={member.name}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                initial={{ opacity: 0, y: 80, rotateY: -20, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
+                transition={{ duration: 1, delay: index * 0.2, ease: "easeOut" }}
                 viewport={{ once: true }}
-                whileHover={{ y: -5 }}
+                whileHover={{ 
+                  y: -15, 
+                  rotateY: 5,
+                  scale: 1.02
+                }}
+                className="group text-center cursor-pointer"
               >
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                  />
+                <div className="relative mb-8 overflow-hidden rounded-3xl">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.7, ease: "easeOut" }}
+                  >
+                    <Image
+                      src={member.image}
+                      alt={member.name}
+                      width={400}
+                      height={500}
+                      className="w-full h-[400px] object-cover"
+                      unoptimized
+                    />
+                  </motion.div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute bottom-6 left-6 right-6 text-white transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="text-sm font-semibold text-red-400">{member.experience}</div>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">{member.name}</h3>
-                  <p className="text-amber-600 font-semibold mb-3">{member.position}</p>
-                  <p className="text-gray-600 leading-relaxed">{member.bio}</p>
+                
+                <h3 className="text-2xl font-bold text-restaurant-black mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
+                  {member.name}
+                </h3>
+                
+                <div className="text-red-600 font-semibold mb-4 uppercase tracking-wider text-sm">
+                  {member.position}
                 </div>
+                
+                <p className="text-gray-600 leading-relaxed">
+                  {member.bio}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Statistiques */}
-      <section className="py-20 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
-        <div className="max-w-6xl mx-auto px-4">
+      {/* 6️⃣ Section - Chiffres Clés */}
+      <section className="py-32 bg-restaurant-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-transparent"></div>
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div
-            className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl font-bold mb-4">Nos Chiffres</h2>
-            <p className="text-xl opacity-90">
-              Les chiffres qui témoignent de notre succès et de votre confiance
+            <h2 className="text-5xl font-bold text-restaurant-white mb-6" style={{ fontFamily: "var(--font-playfair)" }}>
+              L&apos;Excellence en Chiffres
+            </h2>
+            <p className="text-xl text-restaurant-white/80 max-w-3xl mx-auto">
+              Sept années de passion qui parlent d&apos;elles-mêmes
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              { number: '15,000+', label: 'Clients satisfaits' },
-              { number: '50+', label: 'Plats au menu' },
-              { number: '500+', label: 'Commandes/mois' },
-              { number: '4.8/5', label: 'Note moyenne' }
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                className="text-center"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="text-4xl font-bold text-amber-400 mb-2">{stat.number}</div>
-                <div className="text-lg opacity-90">{stat.label}</div>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+            <CounterItem number={5000} label="Clients Satisfaits" suffix="+" />
+            <CounterItem number={7} label="Années de Service" />
+            <CounterItem number={25} label="Spécialités Maison" suffix="+" />
+            <CounterItem number={1} label="Équipe Passionnée" />
           </div>
         </div>
       </section>
 
-      {/* Engagement */}
-      <section className="py-20 bg-amber-50">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      {/* 7️⃣ CTA Final */}
+      <section className="py-32 bg-gradient-to-r from-red-600 to-red-800 text-white text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
             viewport={{ once: true }}
+            className="max-w-4xl mx-auto"
           >
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Notre Engagement</h2>
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              Nous nous engageons à préserver et transmettre les traditions culinaires ivoiriennes 
-              tout en soutenant l&apos;économie locale. Chaque plat que nous servons raconte une histoire, 
-              celle de notre culture et de notre passion pour l&apos;excellence.
+            <h2 className="text-5xl md:text-6xl font-bold mb-8" style={{ fontFamily: "var(--font-playfair)" }}>
+              Réservez votre table et vivez l&apos;expérience La Boucherie-Fine
+            </h2>
+            
+            <p className="text-xl mb-12 text-white/90 max-w-2xl mx-auto">
+              Laissez-vous séduire par l&apos;excellence de nos viandes et l&apos;art de notre service. 
+              Une expérience gastronomique vous attend.
             </p>
-            <motion.button
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Découvrir nos menus
-            </motion.button>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link 
+                  href="/reservations"
+                  className="bg-white text-red-600 font-bold px-8 py-4 rounded-full hover:bg-gray-100 transition-colors duration-300 text-lg inline-block"
+                >
+                  Réserver maintenant
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link 
+                  href="/menus"
+                  className="bg-transparent border-2 border-white text-white font-bold px-8 py-4 rounded-full hover:bg-white hover:text-red-600 transition-all duration-300 text-lg inline-block"
+                >
+                  Découvrir nos menus
+                </Link>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
       <Footer />
-    </div>
+    </main>
   );
 }

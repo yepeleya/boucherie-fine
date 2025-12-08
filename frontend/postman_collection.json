@@ -1,0 +1,273 @@
+{
+  "info": {
+    "name": "La Boucherie-Fine API",
+    "description": "Collection pour tester le système de commandes et paiements",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client@test.com\",\n  \"motDePasse\": \"password123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('authToken', response.token);",
+                  "    pm.environment.set('userId', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Commandes",
+      "item": [
+        {
+          "name": "Créer Commande",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/commandes",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"produitId\": 1,\n      \"quantite\": 2\n    },\n    {\n      \"produitId\": 2,\n      \"quantite\": 1\n    }\n  ],\n  \"total\": 15000,\n  \"typeCommande\": \"CLICK_COLLECT\",\n  \"telephone\": \"0544544735\",\n  \"notes\": \"Commande de test\",\n  \"modePaiement\": \"CINETPAY\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('commandeId', response.data.commande.id);",
+                  "    if (response.data.paymentInit) {",
+                  "        pm.environment.set('paiementId', response.data.paymentInit.paiementId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Liste Commandes",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/commandes?page=1&limit=10",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Détail Commande",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/commandes/{{commandeId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Modifier Statut Commande (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/commandes/{{commandeId}}/statut",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"PAYEE\",\n  \"message\": \"Paiement confirmé par l'admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Commandes Utilisateur",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/utilisateurs/{{userId}}/commandes",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paiements",
+      "item": [
+        {
+          "name": "Initialiser Paiement",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/paiements/init",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paiementId\": {{paiementId}},\n  \"returnUrl\": \"{{baseUrl}}/commandes/success\",\n  \"cancelUrl\": \"{{baseUrl}}/commandes/cancel\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('providerRef', response.data.providerRef);",
+                  "    console.log('Payment URL:', response.data.paymentUrl);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vérifier Statut Paiement",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/paiements/status/{{providerRef}}"
+          }
+        },
+        {
+          "name": "Webhook Test (Succès)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/paiements/webhook",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CinetPay-Signature",
+                "value": "test-signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpm_trans_id\": \"{{providerRef}}\",\n  \"cpm_amount\": \"15000\",\n  \"cpm_currency\": \"XOF\",\n  \"cpm_payid\": \"test-payment-id-123\",\n  \"cpm_result\": \"00\",\n  \"cpm_trans_status\": \"ACCEPTED\",\n  \"cpm_payment_date\": \"2025-12-08\",\n  \"cpm_payment_time\": \"21:30:00\",\n  \"signature\": \"test-signature\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Webhook Test (Échec)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/paiements/webhook",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CinetPay-Signature",
+                "value": "test-signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpm_trans_id\": \"{{providerRef}}\",\n  \"cpm_amount\": \"15000\",\n  \"cpm_currency\": \"XOF\",\n  \"cpm_result\": \"01\",\n  \"cpm_trans_status\": \"REFUSED\",\n  \"cpm_error_message\": \"Insufficient funds\",\n  \"signature\": \"test-signature\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "Envoyer Contact",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/contact",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Jean Dupont\",\n  \"email\": \"jean@test.com\",\n  \"telephone\": \"0123456789\",\n  \"sujet\": \"Réservation\",\n  \"message\": \"Je souhaite réserver une table pour 4 personnes ce soir.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Liste Contacts (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/contacts?page=1&limit=10",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ]
+}

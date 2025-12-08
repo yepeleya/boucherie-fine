@@ -158,10 +158,10 @@ export default function MenusPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl font-bold mb-4"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl mx-auto tracking-tight text-shadow mb-4"
             style={{ fontFamily: "var(--font-playfair)" }}
           >
-            Nos Menus
+            Menus & Saveurs
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}

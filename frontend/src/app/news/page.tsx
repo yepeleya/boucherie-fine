@@ -338,30 +338,137 @@ export default function ActualitesPage() {
               ))}
             </div>
           ) : actualites.length === 0 ? (
-            // État vide avec le style de la page d'accueil
-            <div className="text-center py-20">
-              <div className="text-restaurant-primary text-8xl mb-6">📰</div>
-              <h2 className="text-3xl font-bold mb-4 text-restaurant-white" style={{ fontFamily: "var(--font-playfair)" }}>
-                {searchTerm || selectedCategory ? 'Aucun résultat trouvé' : 'Aucune actualité disponible'}
-              </h2>
-              <p className="text-restaurant-white/80 mb-8 text-lg max-w-2xl mx-auto">
-                {searchTerm || selectedCategory 
-                  ? 'Essayez avec d&apos;autres mots-clés ou explorez toutes nos catégories.' 
-                  : 'Nos dernières actualités arrivent bientôt. Restez connectés pour ne rien manquer !'
+            <>
+              {/* Affichage des actualités d'exemple en attendant les vraies données */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  id: 1,
+                  titre: "Nouveau menu d'hiver - Spécialités de saison",
+                  extrait: "Découvrez nos nouvelles créations hivernales avec des pièces d'exception et des saveurs chaleureuses qui réchauffent les cœurs.",
+                  imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Nouveautés",
+                  datePublication: "2024-12-01",
+                  vues: 245
+                },
+                {
+                  id: 2,
+                  titre: "Soirée dégustation - Vins & Grillades",
+                  extrait: "Rejoignez-nous le 15 décembre pour une soirée exceptionnelle alliant nos meilleures grillades à une sélection de vins raffinés.",
+                  imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Événements",
+                  datePublication: "2024-11-25",
+                  vues: 189
+                },
+                {
+                  id: 3,
+                  titre: "Promotion spéciale - Menu famille",
+                  extrait: "Profitez de 20% de réduction sur nos menus famille tous les dimanches du mois de décembre. Une occasion parfaite pour se retrouver !",
+                  imageUrl: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Promotions",
+                  datePublication: "2024-11-20",
+                  vues: 312
+                },
+                {
+                  id: 4,
+                  titre: "Service de livraison étendu",
+                  extrait: "Nous sommes ravis d'annoncer l'extension de notre zone de livraison ! Désormais disponible jusqu'à Abobo et Yopougon.",
+                  imageUrl: "https://images.unsplash.com/photo-1566554273541-37a9ca77b91b?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Services",
+                  datePublication: "2024-11-15",
+                  vues: 156
+                },
+                {
+                  id: 5,
+                  titre: "Notre chef primé au concours national",
+                  extrait: "Félicitations à notre Chef François qui vient de remporter le prix d'excellence au concours national de cuisine ivoirienne !",
+                  imageUrl: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Actualités",
+                  datePublication: "2024-11-10",
+                  vues: 428
+                },
+                {
+                  id: 6,
+                  titre: "Réservations ouvertes pour les fêtes",
+                  extrait: "Les réservations pour les repas de Noël et du Nouvel An sont désormais ouvertes. Réservez vite, les places sont limitées !",
+                  imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=900&auto=format&fit=crop",
+                  categorie: "Événements",
+                  datePublication: "2024-11-05",
+                  vues: 267
                 }
-              </p>
-              {(searchTerm || selectedCategory) && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('');
-                  }}
-                  className="btn-primary"
+              ].map((actualite) => (
+                <motion.article
+                  key={actualite.id}
+                  className="bg-restaurant-white rounded-2xl overflow-hidden text-restaurant-black shadow-lg hover:shadow-2xl transform hover:scale-102 transition-all duration-300 border-2 border-transparent hover:border-restaurant-primary"
+                  whileHover={{ y: -6 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
                 >
-                  Voir toutes les actualités
-                </button>
-              )}
+                  <div className="h-48 overflow-hidden relative">
+                    <Image 
+                      src={actualite.imageUrl} 
+                      alt={actualite.titre} 
+                      fill 
+                      className="object-cover transition-transform duration-300 hover:scale-110" 
+                      unoptimized 
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-restaurant-primary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        {actualite.categorie}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h4 className="text-xl font-bold mb-3 line-clamp-2 text-restaurant-black hover:text-restaurant-primary transition-colors duration-200">
+                      {actualite.titre}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                      {actualite.extrait}
+                    </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center text-gray-500">
+                        <CalendarIcon className="h-4 w-4 mr-1" />
+                        <span>{formatDate(actualite.datePublication)}</span>
+                      </div>
+                      <div className="flex items-center text-gray-500">
+                        <EyeIcon className="h-4 w-4 mr-1" />
+                        <span>{actualite.vues} vues</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <button className="text-restaurant-primary font-semibold hover:text-restaurant-primary/80 flex items-center group transition-all duration-200">
+                        Lire la suite
+                        <ArrowRightIcon className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
             </div>
+            
+            {/* Section d'information sur les actualités d'exemple */}
+            <div className="text-center mt-16">
+              <div className="bg-restaurant-white/5 rounded-2xl p-8 max-w-2xl mx-auto border border-restaurant-primary/20">
+                <div className="text-restaurant-primary text-4xl mb-4">✨</div>
+                <h3 className="text-xl font-bold mb-3 text-restaurant-white" style={{ fontFamily: "var(--font-playfair)" }}>
+                  Actualités de démonstration
+                </h3>
+                <p className="text-restaurant-white/70 mb-6">
+                  Ces actualités sont affichées à titre d&apos;exemple. Connectez l&apos;API backend pour voir les vraies actualités de La Boucherie Fine.
+                </p>
+                <div className="flex justify-center gap-6 text-sm">
+                  <Link href="/contact" className="text-restaurant-primary hover:text-restaurant-primary/80 transition-colors font-medium flex items-center">
+                    📞 Nous contacter
+                  </Link>
+                  <span className="text-restaurant-white/40">•</span>
+                  <Link href="/" className="text-restaurant-primary hover:text-restaurant-primary/80 transition-colors font-medium flex items-center">
+                    🏠 Retour à l&apos;accueil
+                  </Link>
+                </div>
+              </div>
+            </div>
+            </>
           ) : (
             <>
               {/* Grille des actualités - Style identique aux cartes de plats */}

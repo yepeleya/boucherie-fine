@@ -144,21 +144,6 @@ model Paiement {
   @@map("paiements")
 }
 
-/// TABLE ÉVÉNEMENTS COMMANDE (Audit Trail)
-model EvenementCommande {
-  id               Int      @id @default(autoincrement())
-  commandeId       Int
-  commande         Commande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
-  action           String
-  message          String
-  utilisateurId    Int?
-  metadata         String?  @db.Text
-  dateCreation     DateTime @default(now())
-
-  @@index([commandeId], map: "evenements_commande_commandeId_fkey")
-  @@map("evenements_commande")
-}
-
 /// TABLE ACTUALITÉS (BLOG)
 model Actualite {
   id               Int       @id @default(autoincrement())
@@ -176,6 +161,21 @@ model Actualite {
   vues             Int       @default(0)
 
   @@map("actualites")
+}
+
+/// TABLE ÉVÉNEMENTS COMMANDE (Audit Trail)
+model EvenementCommande {
+  id               Int      @id @default(autoincrement())
+  commandeId       Int
+  commande         Commande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
+  action           String
+  message          String
+  utilisateurId    Int?
+  metadata         String?  @db.Text
+  dateCreation     DateTime @default(now())
+
+  @@index([commandeId], map: "evenements_commande_commandeId_fkey")
+  @@map("evenements_commande")
 }
 
 /// TABLE CONTACTS

@@ -32,12 +32,18 @@ export default function Home() {
           const data = await response.json();
           if (data.success) {
             // Sélectionner quelques plats des deux menus pour la page d'accueil
-            const platsInterieur = data.data.menuInterieur.categories.flatMap((cat: Categorie) => cat.plats).slice(0, 3);
-            const platsExterieur = data.data.menuExterieur.categories.flatMap((cat: Categorie) => cat.plats).slice(0, 3);
+            const platsInterieur = data.data.menuInterieur.categories.flatMap((cat: Categorie) => cat.plats);
+            const platsExterieur = data.data.menuExterieur.categories.flatMap((cat: Categorie) => cat.plats);
+            
+            // Combiner tous les plats et éliminer les doublons par ID
+            const tousLesPlats = [...platsInterieur, ...platsExterieur];
+            const platsUniques = tousLesPlats.filter((plat, index, array) => 
+              array.findIndex(p => p.id === plat.id) === index
+            );
             
             // Mélanger et prendre 6 plats au total
-            const tousPlatsMelanges = [...platsInterieur, ...platsExterieur].slice(0, 6);
-            setPlatsSelectionnes(tousPlatsMelanges);
+            const platsMelanges = platsUniques.sort(() => Math.random() - 0.5).slice(0, 6);
+            setPlatsSelectionnes(platsMelanges);
           }
         }
       } catch (error) {
@@ -128,7 +134,7 @@ export default function Home() {
                 Chaque recette est une promesse : du produit à l&apos;assiette, une expérience chaleureuse et raffinée.
               </p>
 
-              <a href="/a-propos" className="btn-outline">
+              <a href="/a-propos" className="btn-outline-dark">
                 En savoir plus sur nous
               </a>
             </div>
@@ -161,9 +167,9 @@ export default function Home() {
                 </div>
               ))
             ) : platsSelectionnes.length > 0 ? (
-              platsSelectionnes.map((plat) => (
+              platsSelectionnes.map((plat, index) => (
                 <motion.article
-                  key={plat.id}
+                  key={`plat-${index}-${plat.id}`}
                   className="bg-restaurant-white rounded-2xl overflow-hidden text-restaurant-black shadow-lg hover:shadow-2xl transform hover:scale-102 transition-all duration-300 border-2 border-transparent hover:border-restaurant-primary"
                   whileHover={{ y: -6 }}
                 >
@@ -295,7 +301,7 @@ export default function Home() {
             <h3 className="text-3xl font-bold mb-4" style={{ fontFamily: "var(--font-playfair)" }}>À propos</h3>
             <p className="text-gray-700 mb-4">La Boucherie-Fine est née d&apos;une passion pour la viande d&apos;exception et le savoir-faire. Nous célébrons les saveurs authentiques, les cuissons précises et l&apos;accueil chaleureux.</p>
             <p className="text-gray-700 mb-6 italic">«La flambée est l&apos;âme du plat» — Chef François</p>
-            <a href="/a-propos" className="btn-outline">Lire notre histoire</a>
+            <a href="/a-propos" className="btn-outline-dark">Lire notre histoire</a>
           </div>
         </div>
       </section>
